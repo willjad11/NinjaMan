@@ -1,0 +1,494 @@
+<html>
+<head>
+    <title>NinjaMan</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .row {
+            line-height: 0;
+        }
+        .wall {
+            background-color: blue;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+        }
+        .sushi {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/sushi.png');
+            background-size: contain;
+        }
+        .onigiri {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/onigiri.png');
+            background-size: contain;
+        }
+        .blank {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+        }
+        #ninjaman {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/ninja.gif');
+            background-size: contain;
+            position: absolute;
+        }
+        #ghost1 {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/bluey.gif');
+            background-size: contain;
+            position: absolute;
+        }
+        #ghost2 {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/pinky.gif');
+            background-size: contain;
+            position: absolute;
+        }
+        #ghost3 {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/pumpky.gif');
+            background-size: contain;
+            position: absolute;
+        }
+        #ghost4 {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/red.gif');
+            background-size: contain;
+            position: absolute;
+        }
+        #ghost5 {
+            background-color: black;
+            height: 40px;
+            width: 40px;
+            display: inline-block;
+            background-image: url('img/scaredy.png');
+            background-size: contain;
+            position: absolute;
+        }
+
+    </style>
+</head>
+<body>
+    <div id='world'></div>
+    <div id='ninjaman'></div>
+
+</body>
+<script type="text/javascript">
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min) + min);
+    }
+
+    worldlength = getRandomInt(5, 30);
+
+    function arraymaker() { // this generates a randomly sized section of the world
+        arrmake = [];
+        for (var i = 0; i < worldlength; i++) { // random # of times between 5-20, push to 1 array a number between 1-3
+            arrmake.push(getRandomInt(0, 3))
+        }
+        return arrmake;
+    }
+
+    var world = [];
+
+    for (var i = 0; i < getRandomInt(5, 30); i++) { // this takes our randomly created sections of world and slips them in a random # of times
+        world[i] = arraymaker();
+    }
+
+    for (var i = 0; i < world.length; i++) { // loop through world world.length amount of times
+        world[i][0] = 3; //place walls on left side of world
+        world[i][world[i].length] = 3; // place walls on right side of world
+
+    }
+
+    for (var i = 0; i < world[1].length; i++) { // replace top of world with walls
+        world[0][i] = 3;
+    }
+
+    for (var i = 0; i < world[0].length - 1; i++) { // replace bottom of world with walls
+        world[world.length - 1][i] = 3;
+    }
+
+    function foodscore() { // calculates how many sushi items are in the world
+        fooditems = 0;
+        for (var i = 0; i < world.length; i++){
+            for (var x = 0; x < world[i].length; x++){
+                if (world[i][x] == 1){
+                    fooditems += 1;
+                }
+                else if (world[i][x] == 2){
+                    fooditems += 1;
+                }
+            }
+        }
+        return fooditems;
+    }
+
+    var wincon = foodscore() // stores foodscore() before player is able to change the value
+
+    var worldDict = {
+        0: 'blank',
+        1: 'onigiri',
+        2: 'sushi',
+        3: 'wall'
+    }
+
+    var sushi = 0;
+
+    var onigiri = 0;
+
+    var lives = 3;
+
+    function win() { // we delete the ghosts here so that they dont kill the player after a win state
+        document.getElementById('ghost' + ghosttype.one + '').remove();
+        document.getElementById('ghost' + ghosttype.two + '').remove();
+        var winele = document.createElement("p");
+        winele.innerHTML = "<br><h1>YOU WIN!</h1><br><input type = 'button' value = 'PLAY AGAIN?' onClick = 'window.location.reload();'/>";
+        return winele;
+    }
+
+    function lose() { // here we delete the player because, well, it's dead
+            document.getElementById("ninjaman").remove();
+            var losele = document.createElement("p");
+            losele.innerHTML = "<br><h1>YOU LOSE!</h1><br><input type = 'button' value = 'PLAY AGAIN?' onClick = 'window.location.reload();'/>";
+            return losele;
+    }
+
+    function isdead(){ // im using this to check var lives more often to cut down on delayed deaths
+        if (lives <= 0){
+            lose();
+        }
+    }
+
+    function drawWorld(){
+        output = "";
+
+        for (var row = 0; row < world.length; row++){
+            output += "<div class = 'row'>"
+            for (var x = 0; x < world[row].length; x++){
+                output += "<div class = '"+ worldDict[world[row][x]] +"'></div>"
+            }
+            output += "</div>";
+        }
+        document.getElementById('world').innerHTML = output;
+
+        function boldHTML() {
+            var element = document.createElement("b");
+            element.innerHTML = "Sushi's Eaten: <span style='font-weight:normal'>"+ sushi +"</span><br>\
+                                Onigiri's Eaten: <span style='font-weight:normal'>" + onigiri + "</span><br>\
+                                Lives: <span style='font-weight:normal'>" + lives + "</span>";
+            return element;
+        }
+        document.getElementById('world').appendChild(boldHTML());
+
+        if (sushi + onigiri == wincon) {
+            document.getElementById('world').appendChild(win());
+        }
+        else if (lives == 0){
+            document.getElementById('world').appendChild(lose());
+        }
+    }
+    drawWorld()
+
+    var sfix = 0; // using this for the spawnFixer() function
+
+    var ninjaman = {
+        x: getRandomInt(1, world[0].length - 1),
+        y: getRandomInt(1, world.length - 1)
+    }
+
+    var ghost1 = {
+        x: getRandomInt(1, world[0].length - 1),
+        y: getRandomInt(1, world.length - 1)
+    }
+
+    var ghost2 = {
+        x: getRandomInt(1, world[0].length - 1),
+        y: getRandomInt(1, world.length - 1)
+    }
+
+    function spawnFixer(){ // this code will generate new random coords for ghosts that spawn on top of the player or eachother
+        if (ghost1.y == ninjaman.y && ghost1.x == ninjaman.x){
+            ghost1.y = getRandomInt(1, world.length - 1);
+            ghost1.x = getRandomInt(1, world[0].length - 1)
+        }
+        else if (ghost2.y == ninjaman.y && ghost2.x == ninjaman.x) {
+            ghost2.y = getRandomInt(1, world.length - 1);
+            ghost2.x = getRandomInt(1, world[0].length - 1)
+        }
+        else if (ghost2.y == ghost1.y && ghost2.x == ghost1.x) {
+            ghost2.y = getRandomInt(1, world.length - 1);
+            ghost2.x = getRandomInt(1, world[0].length - 1)
+        }
+        else {
+            sfix = 1;
+        }
+    }
+
+    while (sfix == 0){
+        spawnFixer()
+    }
+
+    function drawNinjaman(){
+        document.getElementById('ninjaman').style.top = ninjaman.y * 40 + 'px';
+        document.getElementById('ninjaman').style.left = ninjaman.x * 40 + 'px';
+    }
+
+    var isthereghost = 0; // using this to determine whether code uses coordinates for ghost 1 or ghost 2, must be declared out here
+    var ghosttype = {  // using this to keep track of the ghosts in the world
+        one: getRandomInt(1, 6),
+        two: getRandomInt(1, 6)
+    };
+
+    if (ghosttype.one == ghosttype.two){ // here im making sure the code doesnt spawn a duplicate ghost, or try to call ghost0 which does not exist
+        ghosttype.two -= 1;
+        if (ghosttype.two == 0){
+            ghosttype.two += 2;
+        }
+    }
+
+    function choosecoordinates() { // function the code uses to determine which ghost coords to use
+        var ghostcor = ghost1;
+        if (isthereghost == 1) {
+            ghostcor = ghost2;
+        }
+        return ghostcor;
+    }
+
+    function dupdet(){ // determines whether the code places the first or second ghost
+        if (isthereghost == 0){
+            return ghosttype.one;
+        }
+        else{
+            return ghosttype.two;
+        }
+    }
+
+    function wallCollision(char, a, b) { // checks if the next tile is a wall
+            if (world[char.y + a][char.x + b] == 3) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        }
+
+    function charCollision(char, a, b) { // checks if the desired movement has a ghost in the way (THIS TOOK ME WAY TOO LONG LOL)
+            if (char == ghost1) {
+                if ((ghost1.y + a) == ghost2.y && ghost1.x == ghost2.x) {
+                    return 1;
+                }
+                else if ((ghost1.x + b) == ghost2.x && ghost1.y == ghost2.y) {
+                    return 1;
+                }
+                else if ((ghost1.y + a) == ninjaman.y && ghost1.x == ninjaman.x) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else if ((ghost1.x + b) == ninjaman.x && ghost1.y == ninjaman.y) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+            else if (char == ghost2) {
+                if ((ghost2.y + a) == ghost1.y && ghost2.x == ghost1.x) {
+                    return 1;
+                }
+                else if ((ghost2.x + b) == ghost1.x && ghost2.y == ghost1.y) {
+                    return 1;
+                }
+                else if ((ghost2.y + a) == ninjaman.y && ghost2.x == ninjaman.x) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else if ((ghost2.x + b) == ninjaman.x && ghost2.y == ninjaman.y) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+            else if (char == ninjaman) {
+                if ((ninjaman.y + a) == ghost1.y && ninjaman.x == ghost1.x) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else if ((ninjaman.x + b) == ghost1.x && ninjaman.y == ghost1.y) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else if ((ninjaman.y + a) == ghost2.y && ninjaman.x == ghost2.x) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else if ((ninjaman.x + b) == ghost2.x && ninjaman.y == ghost2.y) {
+                    lives -= 1;
+                    drawWorld()
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+        }
+
+    function drawGhost() { // depending on which number is given, we add the div to the html body and spawn the corresponding ghost
+        if (dupdet() == 1) {
+            var ghost1div = document.createElement("div");
+            ghost1div.id = 'ghost1';
+            ghost1div.innerHTML = "<div id='ghost1'></div>";
+            document.body.appendChild(ghost1div);
+            document.getElementById('ghost1').style.top = choosecoordinates().y * 40 + 'px';
+            document.getElementById('ghost1').style.left = choosecoordinates().x * 40 + 'px';
+        }
+        else if (dupdet() == 2) {
+            var ghost2div = document.createElement("div");
+            ghost2div.id = 'ghost2';
+            ghost2div.innerHTML = "<div id='ghost2'></div>";
+            document.body.appendChild(ghost2div);
+            document.getElementById('ghost2').style.top = choosecoordinates().y * 40 + 'px';
+            document.getElementById('ghost2').style.left = choosecoordinates().x * 40 + 'px';
+        }
+        else if (dupdet() == 3) {
+            var ghost3div = document.createElement("div");
+            ghost3div.id = 'ghost3';
+            ghost3div.innerHTML = "<div id='ghost3'></div>";
+            document.body.appendChild(ghost3div);
+            document.getElementById('ghost3').style.top = choosecoordinates().y * 40 + 'px';
+            document.getElementById('ghost3').style.left = choosecoordinates().x * 40 + 'px';
+        }
+        else if (dupdet() == 4) {
+            var ghost4div = document.createElement("div");
+            ghost4div.id = 'ghost4';
+            ghost4div.innerHTML = "<div id='ghost4'></div>";
+            document.body.appendChild(ghost4div);
+            document.getElementById('ghost4').style.top = choosecoordinates().y * 40 + 'px';
+            document.getElementById('ghost4').style.left = choosecoordinates().x * 40 + 'px';
+        }
+        else if (dupdet() == 5) {
+            var ghost5div = document.createElement("div");
+            ghost5div.id = 'ghost5';
+            ghost5div.innerHTML = "<div id='ghost5'></div>";
+            document.body.appendChild(ghost5div);
+            document.getElementById('ghost5').style.top = choosecoordinates().y * 40 + 'px';
+            document.getElementById('ghost5').style.left = choosecoordinates().x * 40 + 'px';
+        }
+    isthereghost = 1; // this tells the 2nd run of the code that theres now 1 ghost, now it will use different coords for ghost2
+    }
+    drawNinjaman()
+    drawGhost()
+    drawGhost() // i have written framework for TWO ghosts!
+
+    function ghost1Chase(){ // this code compares ghost coords to ninjaman coords and tries to close the gap
+        var slowdown = getRandomInt(1, 5); // this will give the ghost a 1 in 4 chance of moving otherwise its WAY too fast
+        if (slowdown == 1){
+            if (ghost1.x > ninjaman.x && wallCollision(ghost1, 0, -1) == 0 && charCollision(ghost1, 0, -1) == 0) {
+                ghost1.x--;
+            }
+            else if (ghost1.x < ninjaman.x && wallCollision(ghost1, 0, 1) == 0 && charCollision(ghost1, 0, 1) == 0) {
+                ghost1.x++;
+            }
+            if (ghost1.y < ninjaman.y && wallCollision(ghost1, 1, 0) == 0 && charCollision(ghost1, 1, 0) == 0) {
+                ghost1.y++;
+            }
+            else if (ghost1.y > ninjaman.y && wallCollision(ghost1, -1, 0) == 0 && charCollision(ghost1, -1, 0) == 0) {
+                ghost1.y--;
+            }
+        }
+        document.getElementById('ghost'+ ghosttype.one +'').style.top = ghost1.y * 40 + 'px';
+        document.getElementById('ghost' + ghosttype.one + '').style.left = ghost1.x * 40 + 'px';
+    }
+    function ghost2Chase() { // same as ghost1Chase() except with ghost2 instead
+        var slowdown = getRandomInt(1, 5);
+        if (slowdown == 1) {
+            if (ghost2.x > ninjaman.x && wallCollision(ghost2, 0, -1) == 0 && charCollision(ghost2, 0, -1) == 0) {
+                ghost2.x--;
+            }
+            else if (ghost2.x < ninjaman.x && wallCollision(ghost2, 0, 1) == 0 && charCollision(ghost2, 0, 1) == 0) {
+                ghost2.x++;
+            }
+            if (ghost2.y < ninjaman.y && wallCollision(ghost2, 1, 0) == 0 && charCollision(ghost2, 1, 0) == 0) {
+                ghost2.y++;
+            }
+            else if (ghost2.y > ninjaman.y && wallCollision(ghost2, -1, 0) == 0 && charCollision(ghost2, -1, 0) == 0) {
+                ghost2.y--;
+            }
+        }
+        document.getElementById('ghost' + ghosttype.two + '').style.top = ghost2.y * 40 + 'px';
+        document.getElementById('ghost' + ghosttype.two + '').style.left = ghost2.x * 40 + 'px';
+    }
+
+    document.onkeydown = function(e){
+        if (e.keyCode == 37 && wallCollision(ninjaman, 0, -1) == 0 && charCollision(ninjaman, 0, -1) == 0) { // MOVE LEFT
+            ninjaman.x--;
+        }
+        else if (e.keyCode == 39 && wallCollision(ninjaman, 0, 1) == 0 && charCollision(ninjaman, 0, 1) == 0) { // MOVE RIGHT
+            ninjaman.x++;
+        }
+        else if (e.keyCode == 40 && wallCollision(ninjaman, 1, 0) == 0 && charCollision(ninjaman, 1, 0) == 0) { // MOVE DOWN
+            ninjaman.y++;
+        }
+        else if (e.keyCode == 38 && wallCollision(ninjaman, -1, 0) == 0 && charCollision(ninjaman, -1, 0) == 0) { // MOVE UP
+            ninjaman.y--;
+        }
+
+        drawNinjaman()
+        ghost1Chase()
+        ghost2Chase()
+        isdead()
+
+    if (world[ninjaman.y][ninjaman.x] == 2) { // checks if ninjaman is on a sushi, if so then replace with blank tile and add points
+        world[ninjaman.y][ninjaman.x] = 0;
+        sushi += 1;
+        drawWorld()
+        }
+
+    else if (world[ninjaman.y][ninjaman.x] == 1) { // same as above but with onigiri
+        world[ninjaman.y][ninjaman.x] = 0;
+        onigiri += 1;
+        drawWorld()
+    }
+
+    else if (lives < 0){
+        lives = 0;
+    }
+    }
+</script>
+</html>
